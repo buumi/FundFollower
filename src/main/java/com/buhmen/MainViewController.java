@@ -125,9 +125,15 @@ public class MainViewController {
     private void createTooltips() {
         for (XYChart.Series<Long, Double> s : chart.getData()) {
             for (XYChart.Data<Long, Double> d : s.getData()) {
+
+                // To tooltip add actual date instead of just how far it is from this day.
+                LocalDate pointDate = LocalDate.now().plusDays(d.getXValue());
+                String pointDateString = String.format("%s.%s.%s", pointDate.getDayOfMonth(), pointDate.getMonthValue(), pointDate.getYear());
+
                 // Show tooltip when hovering over a point.
                 Tooltip.install(d.getNode(), new Tooltip(
-                        -d.getXValue() + " days ago\n" +
+                        pointDateString + "\n" +
+                                s.getName() + "\n" +
                                 "Value : " + d.getYValue()));
 
                 // Change style of a point on hover
