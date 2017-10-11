@@ -1,0 +1,16 @@
+.table-column {
+    -fx-alignment: CENTER;
+    -fx-font-size: 1.2em;
+}
+
+.lineChart {
+    -fx-font-size: 1.2em;
+}
+
+.lineChart .onHover {
+    -fx-background-color: RED;
+}
+
+.tooltip {
+    -fx-font-size: 1.2em;
+}

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox stylesheets="main.css" prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8.0.141"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.buhmen.MainViewController">
+    <MenuBar VBox.vgrow="NEVER">
+        <Menu mnemonicParsing="false" text="File">
+            <MenuItem accelerator="Shortcut+Q" mnemonicParsing="false" text="Quit" onAction="#quitProgam"/>
+        </Menu>
+    </MenuBar>
+    <TabPane prefWidth="820.0" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <Tab text="Data">
+            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                <TableView fx:id="table" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"
+                           AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" layoutX="188.0"
+                           layoutY="80.0" prefHeight="455.0" prefWidth="568.0">
+                    <columns>
+                        <TableColumn fx:id="nameColumn" prefWidth="150.0" text="Fund"/>
+                        <TableColumn fx:id="valueColumn" prefWidth="75.0" text="Value"/>
+                        <TableColumn fx:id="oneDayAgoColumn" prefWidth="75.0" text="1 day"/>
+                        <TableColumn fx:id="threeDaysAgoColumn" prefWidth="75.0" text="3 days"/>
+                        <TableColumn fx:id="oneWeekAgoColumn" prefWidth="75.0" text="1 week"/>
+                        <TableColumn fx:id="oneMonthAgoColumn" prefWidth="75.0" text="1 month"/>
+                    </columns>
+                </TableView>
+            </AnchorPane>
+        </Tab>
+        <Tab text="Graphs">
+            <AnchorPane prefHeight="200.0" prefWidth="200.0">
+                <LineChart styleClass="lineChart" fx:id="chart" AnchorPane.bottomAnchor="5.0"
+                           AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0"
+                           AnchorPane.topAnchor="5.0">
+                    <xAxis>
+                        <NumberAxis autoRanging="false" label="Days ago" fx:id="xAxis"
+                                    styleClass="lineChart" side="BOTTOM"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis autoRanging="false" label="Value" fx:id="yAxis" styleClass="lineChart"
+                                    side="LEFT"/>
+                    </yAxis>
+                </LineChart>
+            </AnchorPane>
+        </Tab>
+    </TabPane>
+</VBox>
