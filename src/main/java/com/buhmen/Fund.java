@@ -3,21 +3,26 @@ package com.buhmen;
 import javafx.beans.property.SimpleStringProperty;
 
 public class Fund {
-    private SimpleStringProperty name, value, oneDayAgo, threeDaysAgo, oneWeekAgo, oneMonthAgo;
+    private SimpleStringProperty name, currentValue, oneDayAgo, threeDaysAgo, oneWeekAgo, oneMonthAgo, changeFromBeginning, firstDate;
 
-    public Fund(String name, Double value, Double oneDayAgo, Double threeDaysAgo, Double oneWeekAgo, Double oneMonthAgo) {
+    public Fund(String name, Double value, Double oneDayAgo, Double threeDaysAgo, Double oneWeekAgo, Double oneMonthAgo, Double startValue, String firstDateString) {
         this.name = new SimpleStringProperty(name);
 
         if (value != null) {
-            this.value = new SimpleStringProperty(String.format("%.2f", value));
+            this.currentValue = new SimpleStringProperty(String.format("%.2f", value));
         } else {
-            this.value = new SimpleStringProperty("N/A");
+            this.currentValue = new SimpleStringProperty("N/A");
+        }
+
+        if (firstDateString != null) {
+            this.firstDate = new SimpleStringProperty(firstDateString);
         }
 
         this.oneDayAgo = getValue(value, oneDayAgo);
         this.threeDaysAgo = getValue(value, threeDaysAgo);
         this.oneWeekAgo = getValue(value, oneWeekAgo);
         this.oneMonthAgo = getValue(value, oneMonthAgo);
+        this.changeFromBeginning = getValue(value, startValue);
     }
 
     private SimpleStringProperty getValue(Double currentValue, Double earlierValue) {
@@ -29,6 +34,14 @@ public class Fund {
         }
     }
 
+    public String getFirstDate() {
+        return firstDate.get();
+    }
+
+    public SimpleStringProperty firstDateProperty() {
+        return firstDate;
+    }
+
     public String getName() {
         return name.get();
     }
@@ -37,13 +50,6 @@ public class Fund {
         return name;
     }
 
-    public String getValue() {
-        return value.get();
-    }
-
-    public SimpleStringProperty valueProperty() {
-        return value;
-    }
 
     public String getOneDayAgo() {
         return oneDayAgo.get();
@@ -75,5 +81,21 @@ public class Fund {
 
     public SimpleStringProperty oneMonthAgoProperty() {
         return oneMonthAgo;
+    }
+
+    public String getCurrentValue() {
+        return currentValue.get();
+    }
+
+    public SimpleStringProperty currentValueProperty() {
+        return currentValue;
+    }
+
+    public String getChangeFromBeginning() {
+        return changeFromBeginning.get();
+    }
+
+    public SimpleStringProperty changeFromBeginningProperty() {
+        return changeFromBeginning;
     }
 }

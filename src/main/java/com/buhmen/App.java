@@ -20,14 +20,14 @@ import java.nio.charset.Charset;
 
 public class App extends Application
 {
-    final private String DATA_URL = "https://buhmen.com/~buumi/rahastot_v2.json";
+    final private String DATA_URL = "https://buhmen.fi/rahastot/rahastot_v2.json";
     private Stage primaryStage;
 
-    public static void main(String[] args ) throws IOException {
+    public static void main(String[] args) {
         launch(args);
     }
 
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         primaryStage.setTitle("Fund Follower");
         showLoadingScreen();
@@ -35,16 +35,39 @@ public class App extends Application
     }
 
     private void fetchData() {
-        Task task = new Task<JSONArray>() {
-            protected JSONArray call() throws Exception {
-                return (JSONArray) JSONValue.parse(IOUtils.toString(new URL(DATA_URL), Charset.forName("UTF-8")));
+        Task task = new Task<Scene>() {
+            protected Scene call() throws Exception {
+                JSONArray jsonArray = (JSONArray) JSONValue.parse(IOUtils.toString(new URL(DATA_URL), Charset.forName("UTF-8")));
+                return constructMainScene(jsonArray);
             }
         };
 
         Thread thread = new Thread(task);
         thread.start();
 
-        task.setOnSucceeded(event -> showMainScreen(task));
+        task.setOnSucceeded(event -> primaryStage.setScene((Scene) task.getValue()));
+    }
+
+    private Scene constructMainScene(JSONArray jsonArray) {
+        Scene scene;
+
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/main.fxml"));
+            VBox vbox = fxmlLoader.load();
+            ((MainViewController) fxmlLoader.getController()).setData(jsonArray);
+            scene = new Scene(vbox);
+        } catch (IOException e) {
+            System.err.println("ERROR: Opening main program view failed!");
+            e.printStackTrace();
+
+            VBox vbox = new VBox();
+            vbox.setAlignment(Pos.CENTER);
+            Label label = new Label("ERROR: Something went wrong. Unfortunately program will not function correctly");
+            vbox.getChildren().add(label);
+            scene = new Scene(vbox);
+        }
+
+        return scene;
     }
 
     private void showLoadingScreen() {
@@ -61,18 +84,5 @@ public class App extends Application
 
         primaryStage.setScene(scene);
         primaryStage.show();
-    }
-
-    private void showMainScreen(Task task) {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/main.fxml"));
-            VBox vbox = fxmlLoader.load();
-            ((MainViewController) fxmlLoader.getController()).setData(task.getValue());
-            Scene scene = new Scene(vbox);
-            primaryStage.setScene(scene);
-        } catch (IOException e) {
-            System.err.println("ERROR: Opening main program view failed!");
-            e.printStackTrace();
-        }
     }
 }

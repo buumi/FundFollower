@@ -18,12 +18,13 @@ import org.json.simple.JSONObject;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.Map;
 
 public class MainViewController {
 
     @FXML
-    public TableColumn<Fund, String> nameColumn, valueColumn, oneDayAgoColumn, threeDaysAgoColumn, oneWeekAgoColumn, oneMonthAgoColumn;
+    public TableColumn<Fund, String> nameColumn, currentValueColumn, oneDayAgoColumn, threeDaysAgoColumn, oneWeekAgoColumn, oneMonthAgoColumn, sinceStartColumn, firstDateColumn;
     @FXML
     public NumberAxis xAxis, yAxis;
     @FXML
@@ -35,11 +36,13 @@ public class MainViewController {
 
     public void initialize() {
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
+        currentValueColumn.setCellValueFactory(new PropertyValueFactory<>("currentValue"));
         oneDayAgoColumn.setCellValueFactory(new PropertyValueFactory<>("oneDayAgo"));
         threeDaysAgoColumn.setCellValueFactory(new PropertyValueFactory<>("threeDaysAgo"));
         oneWeekAgoColumn.setCellValueFactory(new PropertyValueFactory<>("oneWeekAgo"));
         oneMonthAgoColumn.setCellValueFactory(new PropertyValueFactory<>("oneMonthAgo"));
+        sinceStartColumn.setCellValueFactory(new PropertyValueFactory<>("changeFromBeginning"));
+        firstDateColumn.setCellValueFactory(new PropertyValueFactory<>("firstDate"));
 
         JFXChartUtil.setupZooming(chart);
 
@@ -56,48 +59,56 @@ public class MainViewController {
             XYChart.Series<Long, Double> series = new XYChart.Series<>();
             series.setName(name);
 
-            Double today = null, oneDayAgo = null, threeDaysAgo = null, oneWeekAgo = null, oneMonthAgo = null;
+            Double rawValueToday = null, rawOneDayAgo = null, rawThreeDaysAgo = null, rawOneWeekAgo = null, rawOneMonthAgo = null;
+
             Map<String, Double> values = (Map<String, Double>) jsonObject.get("Values");
 
+            String firstDateString = values.keySet().stream().min(Comparator.comparing(LocalDate::parse)).get();
+            Double firstValue = values.get(firstDateString);
+            String lastDateString = values.keySet().stream().max(Comparator.comparing(LocalDate::parse)).get();
+            LocalDate lastDate = LocalDate.parse(lastDateString);
+
             for (String dateString : values.keySet()) {
-                Double value = values.get(dateString);
+                LocalDate pointDate = LocalDate.parse(dateString);
+                Double rawValue = values.get(dateString);
+                Double changeFromBeginning = 100.0 * values.get(dateString) / firstValue;
 
                 // DateAxis gives issues with zooming. Let's just use NumberAxis for now telling how many days there are between points
                 Long daysAgo = ChronoUnit.DAYS.between(LocalDate.now(), LocalDate.parse(dateString));
 
-                XYChart.Data<Long, Double> singlePoint = new XYChart.Data<>(daysAgo, value);
+                XYChart.Data<Long, Double> singlePoint = new XYChart.Data<>(daysAgo, changeFromBeginning);
 
                 // Determine axis limits
-                if (yMinValue == null || value < yMinValue) {
-                    yMinValue = value;
+                if (yMinValue == null || changeFromBeginning < yMinValue) {
+                    yMinValue = changeFromBeginning;
                 }
-                if (yMaxValue == null || yMaxValue < value) {
-                    yMaxValue = value;
+                if (yMaxValue == null || yMaxValue < changeFromBeginning) {
+                    yMaxValue = changeFromBeginning;
                 }
                 if (xMinValue == null || daysAgo < xMinValue)
                     xMinValue = daysAgo;
 
                 // Determine if this is one of the special values
-                if (daysAgo == 0) {
-                    today = value;
+                if (lastDate.isEqual(pointDate)) {
+                    rawValueToday = rawValue;
                 }
-                else if (daysAgo == -1) {
-                    oneDayAgo = value;
+                if (lastDate.minusDays(1).isEqual(pointDate)) {
+                    rawOneDayAgo = rawValue;
                 }
-                else if (daysAgo == -3) {
-                    threeDaysAgo = value;
+                if (lastDate.minusDays(3).isEqual(pointDate)) {
+                    rawThreeDaysAgo = rawValue;
                 }
-                else if (daysAgo == -7) {
-                    oneWeekAgo = value;
+                if (lastDate.minusDays(7).isEqual(pointDate)) {
+                    rawOneWeekAgo = rawValue;
                 }
-                else if (daysAgo == -30) {
-                    oneMonthAgo = value;
+                if (lastDate.minusDays(30).isEqual(pointDate)) {
+                    rawOneMonthAgo = rawValue;
                 }
 
                 series.getData().add(singlePoint);
             }
 
-            Fund fund = new Fund(name, today, oneDayAgo, threeDaysAgo, oneWeekAgo, oneMonthAgo);
+            Fund fund = new Fund(name, rawValueToday, rawOneDayAgo, rawThreeDaysAgo, rawOneWeekAgo, rawOneMonthAgo, firstValue, firstDateString);
 
             table.getItems().add(fund);
             chart.getData().add(series);
@@ -118,8 +129,8 @@ public class MainViewController {
         xAxis.setLowerBound(xMinValue - 1);
         xAxis.setUpperBound(xMaxValue);
 
-        yAxis.setLowerBound(yMinValue - 10);
-        yAxis.setUpperBound(yMaxValue + 10);
+        yAxis.setLowerBound(yMinValue - 1);
+        yAxis.setUpperBound(yMaxValue + 1);
     }
 
     private void createTooltips() {
@@ -134,7 +145,7 @@ public class MainViewController {
                 Tooltip.install(d.getNode(), new Tooltip(
                         pointDateString + "\n" +
                                 s.getName() + "\n" +
-                                "Value : " + d.getYValue()));
+                                "Value : " + String.format("%.2f %%", d.getYValue())));
 
                 // Change style of a point on hover
                 d.getNode().setOnMouseEntered(event -> d.getNode().getStyleClass().add("onHover"));
@@ -152,7 +163,7 @@ public class MainViewController {
         this.data.addAll(jsonArray);
     }
 
-    public void quitProgam(ActionEvent actionEvent) {
+    public void quitProgram(ActionEvent actionEvent) {
         System.exit(0);
     }
 }
