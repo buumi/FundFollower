@@ -5,11 +5,11 @@ import javafx.beans.property.SimpleStringProperty;
 public class Fund {
     private SimpleStringProperty name, currentValue, oneDayAgo, threeDaysAgo, oneWeekAgo, oneMonthAgo, changeFromBeginning, firstDate;
 
-    public Fund(String name, Double value, Double oneDayAgo, Double threeDaysAgo, Double oneWeekAgo, Double oneMonthAgo, Double startValue, String firstDateString) {
+    public Fund(String name, Double currentValue, Double oneDayAgo, Double threeDaysAgo, Double oneWeekAgo, Double oneMonthAgo, Double startValue, String firstDateString) {
         this.name = new SimpleStringProperty(name);
 
-        if (value != null) {
-            this.currentValue = new SimpleStringProperty(String.format("%.2f", value));
+        if (currentValue != null) {
+            this.currentValue = new SimpleStringProperty(String.format("%.2f", currentValue));
         } else {
             this.currentValue = new SimpleStringProperty("N/A");
         }
@@ -18,16 +18,16 @@ public class Fund {
             this.firstDate = new SimpleStringProperty(firstDateString);
         }
 
-        this.oneDayAgo = getValue(value, oneDayAgo);
-        this.threeDaysAgo = getValue(value, threeDaysAgo);
-        this.oneWeekAgo = getValue(value, oneWeekAgo);
-        this.oneMonthAgo = getValue(value, oneMonthAgo);
-        this.changeFromBeginning = getValue(value, startValue);
+        this.oneDayAgo = getChangePercentage(currentValue, oneDayAgo);
+        this.threeDaysAgo = getChangePercentage(currentValue, threeDaysAgo);
+        this.oneWeekAgo = getChangePercentage(currentValue, oneWeekAgo);
+        this.oneMonthAgo = getChangePercentage(currentValue, oneMonthAgo);
+        this.changeFromBeginning = getChangePercentage(currentValue, startValue);
     }
 
-    private SimpleStringProperty getValue(Double currentValue, Double earlierValue) {
-        if (currentValue != null && earlierValue != null) {
-            return new SimpleStringProperty(String.format("%.2f %%", 100 * (currentValue - earlierValue) / earlierValue));
+    private SimpleStringProperty getChangePercentage(Double currentValue, Double valueToCompareTo) {
+        if (currentValue != null && valueToCompareTo != null) {
+            return new SimpleStringProperty(String.format("%.2f %%", 100 * (currentValue - valueToCompareTo) / valueToCompareTo));
         }
         else {
             return new SimpleStringProperty("N/A");
