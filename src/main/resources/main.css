@@ -3,6 +3,10 @@
     -fx-font-size: 1.2em;
 }
 
+.table-row {
+    -fx-background-color: yellow;
+}
+
 .lineChart {
     -fx-font-size: 1.2em;
 }
@@ -14,3 +18,5 @@
 .tooltip {
     -fx-font-size: 1.2em;
 }
+
+

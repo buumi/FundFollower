@@ -1,5 +1,6 @@
 package com.buhmen;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -8,10 +9,13 @@ import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import org.gillius.jfxutils.chart.JFXChartUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -19,12 +23,15 @@ import org.json.simple.JSONObject;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MainViewController {
 
     @FXML
-    public TableColumn<Fund, String> nameColumn, currentValueColumn, oneDayAgoColumn, threeDaysAgoColumn, oneWeekAgoColumn, oneMonthAgoColumn, sinceStartColumn, firstDateColumn;
+    public TableColumn<Fund, String> nameColumn, currentValueColumn, oneDayAgoColumn, threeDaysAgoColumn,
+            oneWeekAgoColumn, oneMonthAgoColumn, sinceStartColumn, firstDateColumn;
     @FXML
     public NumberAxis xAxis, yAxis;
     @FXML
@@ -32,7 +39,7 @@ public class MainViewController {
     @FXML
     private LineChart<Long, Double> chart;
 
-    private ObservableList<JSONObject> data = FXCollections.observableArrayList();
+    private ObservableList<DBData> data = FXCollections.observableArrayList();
 
     public void initialize() {
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -44,9 +51,39 @@ public class MainViewController {
         sinceStartColumn.setCellValueFactory(new PropertyValueFactory<>("changeFromBeginning"));
         firstDateColumn.setCellValueFactory(new PropertyValueFactory<>("firstDate"));
 
+        oneDayAgoColumn.setCellFactory(column -> getCellStyle());
+        threeDaysAgoColumn.setCellFactory(column -> getCellStyle());
+        oneWeekAgoColumn.setCellFactory(column -> getCellStyle());
+        oneMonthAgoColumn.setCellFactory(column -> getCellStyle());
+        sinceStartColumn.setCellFactory(column -> getCellStyle());
+
         JFXChartUtil.setupZooming(chart);
 
-        data.addListener((ListChangeListener<JSONObject>) c -> updateViews());
+        data.addListener((ListChangeListener<DBData>) c -> updateViews());
+    }
+
+    private TableCell<Fund, String> getCellStyle() {
+        return new TableCell<Fund, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                setText(item);
+                setStyle("");
+
+                if(item == null || item.equals("N/A") || item.contains("0.00")) {
+                    return;
+                }
+
+                if (item.startsWith("-")) {
+                    // Format date.
+                    setStyle("-fx-text-fill: #f7134e");
+                }
+                else {
+                    setStyle("-fx-text-fill: #0dcb00");
+                }
+            }
+        };
     }
 
     // TODO consider refactoring this at least, even though whole class could be better done.
@@ -54,14 +91,14 @@ public class MainViewController {
         Double yMinValue = null, yMaxValue = null;
         Long xMinValue = null, xMaxValue = 1L;
 
-        for (JSONObject jsonObject : data) {
-            String name = (String) jsonObject.get("Name");
+        for (DBData dbData : data) {
+            String name = dbData.getName();
             XYChart.Series<Long, Double> series = new XYChart.Series<>();
             series.setName(name);
 
             Double rawValueToday = null, rawOneDayAgo = null, rawThreeDaysAgo = null, rawOneWeekAgo = null, rawOneMonthAgo = null;
 
-            Map<String, Double> values = (Map<String, Double>) jsonObject.get("Values");
+            Map<String, Double> values = dbData.getValues();
 
             String firstDateString = values.keySet().stream().min(Comparator.comparing(LocalDate::parse)).get();
             Double firstValue = values.get(firstDateString);
@@ -156,14 +193,13 @@ public class MainViewController {
         }
     }
 
-    void setData(Object data) {
-        JSONArray jsonArray = (JSONArray) data;
-
+    void setData(Set<DBData> data) {
         this.data.clear();
-        this.data.addAll(jsonArray);
+        this.data.addAll(data);
     }
 
     public void quitProgram(ActionEvent actionEvent) {
+        Platform.exit();
         System.exit(0);
     }
 }
