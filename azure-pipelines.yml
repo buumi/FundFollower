@@ -1,0 +1,24 @@
+# Maven
+# Build your Java project and run tests with Apache Maven.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+pool:
+  vmImage: 'ubuntu-16.04'
+
+container: buumi/fundfollower:latest
+
+trigger:
+- master
+
+steps:
+- bash: |
+    mvn clean package  
+- task: CopyFiles@2
+  inputs:
+    contents: 'target/*.jar'
+    targetFolder: $(Build.ArtifactStagingDirectory)
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: Artifacts

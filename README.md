@@ -1,3 +1,7 @@
+# Fund Follower
+
+[![Build Status](https://dev.azure.com/jorikankaan/FundFollower/_apis/build/status/buumi.FundFollower?branchName=master)](https://dev.azure.com/jorikankaan/FundFollower/_build/latest?definitionId=1&branchName=master)
+
 Small JavaFX program for showing development of some funds.
 It downloads data from my web-server which tracks values of those funds
 once per day and displays those in simple data and graph formats.
